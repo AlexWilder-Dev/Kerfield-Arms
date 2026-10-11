@@ -9,7 +9,9 @@ mkdir -p images/src
 B="https://images.squarespace-cdn.com/content/v1/67a08908b0eb9932900e0e5f"
 Q="?format=2500w"
 
-curl -sS --fail --retry 3 \
+curl -sS --fail --retry 3 --connect-timeout 20 --max-time 180 \
+  -A "Mozilla/5.0 (compatible; site-build)" \
+  -w "%{http_code} %{size_download} bytes  %{filename_effective}\n" \
   -o images/src/logo.png       "$B/72acd39a-1a69-43ba-8f81-b211e3947908/Logo+for+web1.png$Q" \
   -o images/src/michelin.png   "$B/456cd5b4-89f8-4d21-a7a7-f3d8025e06cf/1+MICHELIN+Star_2026_Vertical_White.png$Q" \
   -o images/src/april-17.jpg   "$B/1108a4e4-f181-464e-9d68-8a01990c93ea/The+Kerfield+%28April+shoot%29+jwhowardphoto+-+HR-17.jpg$Q" \
