@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow
+        run: pip install pillow
+
+      # Photography is downloaded and resized at build time unless it is already committed.
+      - name: Fetch and resize images
+        run: |
+          if [ ! -f images/april-17-1600.jpg ]; then
+            ./scripts/fetch-images.sh
+          fi
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/images
+          cp index.html favicon.svg .nojekyll _site/
+          cp -r css js fonts _site/
+          find images -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.png' \) -exec cp {} _site/images/ \;
+          ls -la _site _site/images
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -205,9 +205,19 @@
       e.preventDefault();
       form.classList.add('was-validated');
 
+      var guestsInput = form.querySelector('[name="guests"]');
+      var groundFloor = form.querySelector('[name="space"][value="Ground floor table"]');
+      guestsInput.setCustomValidity(
+        groundFloor.checked && +guestsInput.value > 14
+          ? 'Ground floor tables seat up to 14. For larger groups, choose the private dining room.'
+          : ''
+      );
+
       if (!form.checkValidity()) {
         var firstInvalid = form.querySelector(':invalid');
-        errorEl.textContent = 'Please check the highlighted fields.';
+        errorEl.textContent = guestsInput.validationMessage && guestsInput.validity.customError
+          ? guestsInput.validationMessage
+          : 'Please check the highlighted fields.';
         errorEl.hidden = false;
         if (firstInvalid) firstInvalid.focus();
         return;
@@ -237,7 +247,8 @@
         '&body=' + encodeURIComponent(body);
 
       success.querySelector('[data-success-summary]').textContent =
-        'Your enquiry for ' + guests + (guests === '1' ? ' guest' : ' guests') + ' on ' + date + ' (' + space.toLowerCase() + ') is ready.';
+        'Your enquiry: ' + guests + (guests === '1' ? ' guest' : ' guests') + ', ' + date + ', ' +
+        (space === 'Not sure yet' ? 'space to be confirmed' : space.toLowerCase()) + '.';
 
       form.hidden = true;
       success.hidden = false;
